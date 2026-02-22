@@ -11,6 +11,7 @@ interface Invoice {
   invoice_date: string;
   due_date: string;
   notes?: string;
+  reference_number?: string;
 }
 
 interface InvoiceDetailModalProps {
@@ -36,7 +37,10 @@ export default function InvoiceDetailModal({
 
   const handleEdit = () => {
     setEditData({
+      invoice_date: invoice.invoice_date,
+      due_date: invoice.due_date,
       notes: invoice.notes,
+      reference_number: invoice.reference_number,
     });
     setIsEditing(true);
   };
@@ -135,13 +139,44 @@ export default function InvoiceDetailModal({
               </div>
 
               <div>
+                <label className="text-gray-400 text-sm">Invoice Date</label>
+                <input
+                  type="date"
+                  value={editData.invoice_date || ''}
+                  onChange={(e) => setEditData({ ...editData, invoice_date: e.target.value })}
+                  className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded text-white placeholder-gray-500 focus:outline-none focus:border-rose-500"
+                />
+              </div>
+
+              <div>
+                <label className="text-gray-400 text-sm">Due Date</label>
+                <input
+                  type="date"
+                  value={editData.due_date || ''}
+                  onChange={(e) => setEditData({ ...editData, due_date: e.target.value })}
+                  className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded text-white placeholder-gray-500 focus:outline-none focus:border-rose-500"
+                />
+              </div>
+
+              <div>
+                <label className="text-gray-400 text-sm">Reference Number</label>
+                <input
+                  type="text"
+                  value={editData.reference_number || ''}
+                  onChange={(e) => setEditData({ ...editData, reference_number: e.target.value })}
+                  className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded text-white placeholder-gray-500 focus:outline-none focus:border-rose-500"
+                  placeholder="Enter reference number"
+                />
+              </div>
+
+              <div>
                 <label className="text-gray-400 text-sm">Notes</label>
                 <textarea
                   value={editData.notes || ''}
                   onChange={(e) => setEditData({ ...editData, notes: e.target.value })}
                   className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded text-white placeholder-gray-500 focus:outline-none focus:border-rose-500"
                   placeholder="Enter notes"
-                  rows={4}
+                  rows={3}
                 />
               </div>
 

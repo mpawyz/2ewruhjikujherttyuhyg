@@ -12,6 +12,7 @@ interface Invoice {
   invoice_date: string;
   due_date: string;
   notes?: string;
+  reference_number?: string;
 }
 
 interface InvoicesTabProps {

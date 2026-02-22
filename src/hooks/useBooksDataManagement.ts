@@ -36,6 +36,7 @@ interface Invoice {
   invoice_date: string;
   due_date: string;
   notes?: string;
+  reference_number?: string;
 }
 
 interface Customer {
@@ -611,6 +612,7 @@ export function useBooksDataManagement(organizationId: string | null, isConnecte
           invoice_date: invoiceData.invoice_date || '',
           due_date: invoiceData.due_date || '',
           notes: invoiceData.notes,
+          reference_number: invoiceData.reference_number,
         });
       }
     } catch (error) {
@@ -623,7 +625,10 @@ export function useBooksDataManagement(organizationId: string | null, isConnecte
     if (!user?.id || !organizationId) return;
     try {
       await updateInvoice(user.id, organizationId, invoiceId, {
+        invoice_date: updates.invoice_date,
+        due_date: updates.due_date,
         notes: updates.notes,
+        reference_number: updates.reference_number,
       });
       addToast('Invoice updated successfully!', 'success');
       await loadInvoicesData();
