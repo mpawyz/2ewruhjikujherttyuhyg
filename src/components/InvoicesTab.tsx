@@ -2,6 +2,14 @@ import React, { useState } from 'react';
 import { Plus, FileText, CheckCircle2, AlertCircle, Mail, Clock, Eye, Edit2, Trash2, Zap } from 'lucide-react';
 import InvoiceDetailModal from './InvoiceDetailModal';
 
+interface LineItem {
+  item_id?: string;
+  line_item_id?: string;
+  description: string;
+  quantity: number;
+  rate: number;
+}
+
 interface Invoice {
   invoice_id: string;
   invoice_number: string;
@@ -13,6 +21,7 @@ interface Invoice {
   due_date: string;
   notes?: string;
   reference_number?: string;
+  line_items?: LineItem[];
 }
 
 interface InvoicesTabProps {

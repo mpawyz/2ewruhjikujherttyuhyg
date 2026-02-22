@@ -1,5 +1,13 @@
-import React, { useState } from 'react';
-import { Edit2, X } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { Edit2, X, Plus, Trash2 } from 'lucide-react';
+
+interface LineItem {
+  item_id?: string;
+  description: string;
+  quantity: number;
+  rate: number;
+  line_item_id?: string;
+}
 
 interface Invoice {
   invoice_id: string;
@@ -12,6 +20,7 @@ interface Invoice {
   due_date: string;
   notes?: string;
   reference_number?: string;
+  line_items?: LineItem[];
 }
 
 interface InvoiceDetailModalProps {
@@ -35,14 +44,54 @@ export default function InvoiceDetailModal({
 
   if (!isOpen || !invoice) return null;
 
+  const calculatedTotal = useMemo(() => {
+    if (!editData?.line_items) return invoice.total;
+    return editData.line_items.reduce((sum, item) => sum + (item.quantity * item.rate), 0);
+  }, [editData?.line_items, invoice.total]);
+
   const handleEdit = () => {
     setEditData({
       invoice_date: invoice.invoice_date,
       due_date: invoice.due_date,
       notes: invoice.notes,
       reference_number: invoice.reference_number,
+      line_items: invoice.line_items || [],
     });
     setIsEditing(true);
+  };
+
+  const handleAddLineItem = () => {
+    if (!editData) return;
+    const newItem: LineItem = {
+      description: '',
+      quantity: 1,
+      rate: 0,
+    };
+    setEditData({
+      ...editData,
+      line_items: [...(editData.line_items || []), newItem],
+    });
+  };
+
+  const handleUpdateLineItem = (index: number, field: string, value: any) => {
+    if (!editData?.line_items) return;
+    const updatedItems = [...editData.line_items];
+    updatedItems[index] = {
+      ...updatedItems[index],
+      [field]: field === 'quantity' || field === 'rate' ? parseFloat(value) || 0 : value,
+    };
+    setEditData({
+      ...editData,
+      line_items: updatedItems,
+    });
+  };
+
+  const handleRemoveLineItem = (index: number) => {
+    if (!editData?.line_items) return;
+    setEditData({
+      ...editData,
+      line_items: editData.line_items.filter((_, i) => i !== index),
+    });
   };
 
   const handleSave = async () => {
@@ -112,6 +161,22 @@ export default function InvoiceDetailModal({
                 <p className="text-white capitalize">{invoice.status}</p>
               </div>
 
+              {invoice.line_items && invoice.line_items.length > 0 && (
+                <div className="border-t border-white/10 pt-4">
+                  <label className="text-gray-400 text-sm block mb-3">Line Items</label>
+                  <div className="space-y-2">
+                    {invoice.line_items.map((item, idx) => (
+                      <div key={idx} className="bg-white/5 p-3 rounded border border-white/10">
+                        <p className="text-white text-sm font-medium">{item.description}</p>
+                        <p className="text-gray-400 text-xs mt-1">
+                          {item.quantity} × ${item.rate.toFixed(2)} = ${(item.quantity * item.rate).toFixed(2)}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {invoice.notes && (
                 <div>
                   <label className="text-gray-400 text-sm">Notes</label>
@@ -131,10 +196,78 @@ export default function InvoiceDetailModal({
                 <p className="text-white font-medium">{invoice.customer_name}</p>
               </div>
 
+              <div className="border-t border-white/10 pt-4 border-b pb-4">
+                <div className="flex items-center justify-between mb-3">
+                  <label className="text-gray-400 text-sm">Line Items</label>
+                  <button
+                    onClick={handleAddLineItem}
+                    className="flex items-center gap-1 px-2 py-1 text-xs bg-blue-500/20 text-blue-300 rounded hover:bg-blue-500/30 transition-colors"
+                  >
+                    <Plus className="w-3 h-3" />
+                    Add Item
+                  </button>
+                </div>
+
+                {editData?.line_items && editData.line_items.length > 0 ? (
+                  <div className="space-y-3">
+                    {editData.line_items.map((item, idx) => (
+                      <div key={idx} className="bg-white/5 p-3 rounded border border-white/10 space-y-2">
+                        <input
+                          type="text"
+                          value={item.description}
+                          onChange={(e) => handleUpdateLineItem(idx, 'description', e.target.value)}
+                          placeholder="Item description"
+                          className="w-full px-2 py-1 bg-white/10 border border-white/20 rounded text-white text-sm placeholder-gray-500 focus:outline-none focus:border-rose-500"
+                        />
+                        <div className="grid grid-cols-3 gap-2">
+                          <div>
+                            <label className="text-gray-400 text-xs block mb-1">Qty</label>
+                            <input
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              value={item.quantity}
+                              onChange={(e) => handleUpdateLineItem(idx, 'quantity', e.target.value)}
+                              className="w-full px-2 py-1 bg-white/10 border border-white/20 rounded text-white text-sm focus:outline-none focus:border-rose-500"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-gray-400 text-xs block mb-1">Rate</label>
+                            <input
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              value={item.rate}
+                              onChange={(e) => handleUpdateLineItem(idx, 'rate', e.target.value)}
+                              className="w-full px-2 py-1 bg-white/10 border border-white/20 rounded text-white text-sm focus:outline-none focus:border-rose-500"
+                            />
+                          </div>
+                          <div className="flex items-end">
+                            <div className="flex-1 mr-2">
+                              <label className="text-gray-400 text-xs block mb-1">Total</label>
+                              <p className="text-white text-sm font-medium">${(item.quantity * item.rate).toFixed(2)}</p>
+                            </div>
+                            <button
+                              onClick={() => handleRemoveLineItem(idx)}
+                              className="p-1 text-red-400 hover:text-red-300 transition-colors"
+                              title="Remove item"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-400 text-sm">No line items. Add one to proceed.</p>
+                )}
+              </div>
+
               <div>
-                <label className="text-gray-400 text-sm">Amount</label>
+                <label className="text-gray-400 text-sm">Total Amount</label>
                 <p className="text-white font-medium text-lg">
-                  ${invoice.total.toFixed(2)}
+                  ${calculatedTotal.toFixed(2)}
                 </p>
               </div>
 
