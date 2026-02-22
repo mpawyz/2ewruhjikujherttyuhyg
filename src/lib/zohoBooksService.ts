@@ -460,12 +460,36 @@ export const createCustomer = async (
     notes?: string;
   }
 ) => {
+  const payload: any = {
+    contact_name: customerData.contact_name,
+    contact_type: 'customer',
+  };
+
+  if (customerData.company_name) payload.company_name = customerData.company_name;
+  if (customerData.website) payload.website = customerData.website;
+  if (customerData.billing_address) payload.billing_address = customerData.billing_address;
+  if (customerData.shipping_address) payload.shipping_address = customerData.shipping_address;
+  if (customerData.notes) payload.notes = customerData.notes;
+
+  // Email and phone must be nested in contact_persons array for Zoho UI to display them
+  if (customerData.email || customerData.phone || customerData.mobile || customerData.fax) {
+    payload.contact_persons = [
+      {
+        email: customerData.email,
+        phone: customerData.phone,
+        mobile: customerData.mobile,
+        fax: customerData.fax,
+        is_primary_contact: true,
+      },
+    ];
+  }
+
   return zohoBooksApiCall(
     userId,
     organizationId,
     '/contacts',
     'POST',
-    customerData
+    payload
   );
 };
 
@@ -475,12 +499,34 @@ export const updateCustomer = async (
   customerId: string,
   customerData: any
 ) => {
+  const payload: any = {};
+
+  if (customerData.contact_name) payload.contact_name = customerData.contact_name;
+  if (customerData.company_name) payload.company_name = customerData.company_name;
+  if (customerData.website) payload.website = customerData.website;
+  if (customerData.billing_address) payload.billing_address = customerData.billing_address;
+  if (customerData.shipping_address) payload.shipping_address = customerData.shipping_address;
+  if (customerData.notes) payload.notes = customerData.notes;
+
+  // Email and phone must be nested in contact_persons array for Zoho UI to display them
+  if (customerData.email || customerData.phone || customerData.mobile || customerData.fax) {
+    payload.contact_persons = [
+      {
+        email: customerData.email,
+        phone: customerData.phone,
+        mobile: customerData.mobile,
+        fax: customerData.fax,
+        is_primary_contact: true,
+      },
+    ];
+  }
+
   return zohoBooksApiCall(
     userId,
     organizationId,
     `/contacts/${customerId}`,
     'PUT',
-    customerData
+    payload
   );
 };
 
@@ -574,17 +620,35 @@ export const createVendor = async (
     notes?: string;
   }
 ) => {
-  const vendorPayload = {
-    ...vendorData,
+  const payload: any = {
+    contact_name: vendorData.contact_name,
     contact_type: 'vendor',
   };
+
+  if (vendorData.company_name) payload.company_name = vendorData.company_name;
+  if (vendorData.website) payload.website = vendorData.website;
+  if (vendorData.billing_address) payload.billing_address = vendorData.billing_address;
+  if (vendorData.notes) payload.notes = vendorData.notes;
+
+  // Email and phone must be nested in contact_persons array for Zoho UI to display them
+  if (vendorData.email || vendorData.phone || vendorData.mobile || vendorData.fax) {
+    payload.contact_persons = [
+      {
+        email: vendorData.email,
+        phone: vendorData.phone,
+        mobile: vendorData.mobile,
+        fax: vendorData.fax,
+        is_primary_contact: true,
+      },
+    ];
+  }
 
   return zohoBooksApiCall(
     userId,
     organizationId,
     '/contacts',
     'POST',
-    vendorPayload
+    payload
   );
 };
 
@@ -594,12 +658,33 @@ export const updateVendor = async (
   vendorId: string,
   vendorData: any
 ) => {
+  const payload: any = {};
+
+  if (vendorData.contact_name) payload.contact_name = vendorData.contact_name;
+  if (vendorData.company_name) payload.company_name = vendorData.company_name;
+  if (vendorData.website) payload.website = vendorData.website;
+  if (vendorData.billing_address) payload.billing_address = vendorData.billing_address;
+  if (vendorData.notes) payload.notes = vendorData.notes;
+
+  // Email and phone must be nested in contact_persons array for Zoho UI to display them
+  if (vendorData.email || vendorData.phone || vendorData.mobile || vendorData.fax) {
+    payload.contact_persons = [
+      {
+        email: vendorData.email,
+        phone: vendorData.phone,
+        mobile: vendorData.mobile,
+        fax: vendorData.fax,
+        is_primary_contact: true,
+      },
+    ];
+  }
+
   return zohoBooksApiCall(
     userId,
     organizationId,
     `/contacts/${vendorId}`,
     'PUT',
-    vendorData
+    payload
   );
 };
 
