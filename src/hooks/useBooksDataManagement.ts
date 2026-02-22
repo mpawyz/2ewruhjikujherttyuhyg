@@ -26,6 +26,14 @@ import {
   updateVendor,
 } from '../lib/zohoBooksService';
 
+interface LineItem {
+  item_id?: string;
+  line_item_id?: string;
+  description: string;
+  quantity: number;
+  rate: number;
+}
+
 interface Invoice {
   invoice_id: string;
   invoice_number: string;
@@ -36,6 +44,8 @@ interface Invoice {
   invoice_date: string;
   due_date: string;
   notes?: string;
+  reference_number?: string;
+  line_items?: LineItem[];
 }
 
 interface Customer {
@@ -601,6 +611,18 @@ export function useBooksDataManagement(organizationId: string | null, isConnecte
       const invoice = await getInvoice(user.id, organizationId, invoiceId);
       const invoiceData = invoice?.invoice || invoice;
       if (invoiceData) {
+        // Extract and normalize line items
+        let lineItems: LineItem[] = [];
+        if (invoiceData.line_items && Array.isArray(invoiceData.line_items)) {
+          lineItems = invoiceData.line_items.map((item: any) => ({
+            item_id: item.item_id,
+            line_item_id: item.line_item_id,
+            description: item.description || item.item_name || '',
+            quantity: parseFloat(item.quantity) || 0,
+            rate: parseFloat(item.rate) || 0,
+          }));
+        }
+
         setSelectedInvoice({
           invoice_id: invoiceData.invoice_id || invoiceId,
           invoice_number: invoiceData.invoice_number || '',
@@ -611,6 +633,8 @@ export function useBooksDataManagement(organizationId: string | null, isConnecte
           invoice_date: invoiceData.invoice_date || '',
           due_date: invoiceData.due_date || '',
           notes: invoiceData.notes,
+          reference_number: invoiceData.reference_number,
+          line_items: lineItems,
         });
       }
     } catch (error) {
@@ -622,8 +646,23 @@ export function useBooksDataManagement(organizationId: string | null, isConnecte
   const handleUpdateInvoice = async (invoiceId: string, updates: Partial<Invoice>) => {
     if (!user?.id || !organizationId) return;
     try {
+      // Prepare line items for API - filter out empty items
+      const lineItems = updates.line_items
+        ?.filter(item => item.description && item.quantity > 0 && item.rate > 0)
+        .map(item => ({
+          line_item_id: item.line_item_id,
+          item_id: item.item_id,
+          description: item.description,
+          quantity: item.quantity,
+          rate: item.rate,
+        })) || [];
+
       await updateInvoice(user.id, organizationId, invoiceId, {
+        invoice_date: updates.invoice_date,
+        due_date: updates.due_date,
         notes: updates.notes,
+        reference_number: updates.reference_number,
+        line_items: lineItems.length > 0 ? lineItems : undefined,
       });
       addToast('Invoice updated successfully!', 'success');
       await loadInvoicesData();
