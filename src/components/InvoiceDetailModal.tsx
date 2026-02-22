@@ -42,14 +42,13 @@ export default function InvoiceDetailModal({
   const [editData, setEditData] = useState<Partial<Invoice> | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
-  if (!isOpen || !invoice) return null;
-
   const calculatedTotal = useMemo(() => {
-    if (!editData?.line_items) return invoice.total;
+    if (!editData?.line_items || !invoice) return invoice?.total || 0;
     return editData.line_items.reduce((sum, item) => sum + (item.quantity * item.rate), 0);
-  }, [editData?.line_items, invoice.total]);
+  }, [editData?.line_items, invoice]);
 
   const handleEdit = () => {
+    if (!invoice) return;
     setEditData({
       invoice_date: invoice.invoice_date,
       due_date: invoice.due_date,
@@ -95,7 +94,7 @@ export default function InvoiceDetailModal({
   };
 
   const handleSave = async () => {
-    if (!editData || !onUpdate) return;
+    if (!editData || !onUpdate || !invoice) return;
     setIsSaving(true);
     try {
       await onUpdate(invoice.invoice_id, editData);
@@ -109,9 +108,12 @@ export default function InvoiceDetailModal({
   };
 
   const handleDelete = async () => {
+    if (!invoice) return;
     await onDelete(invoice.invoice_id);
     onClose();
   };
+
+  if (!isOpen || !invoice) return null;
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
